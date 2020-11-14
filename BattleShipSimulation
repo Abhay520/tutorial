@@ -1,0 +1,313 @@
+//-------------------------------------------------
+import java.util.*;
+public class BattleShipDriver {
+	public static void main(String[] args) {
+		Scanner keyboard = new Scanner(System.in);
+		//Initializing first Grid and filling it with "_" using creatingGrid method
+		String[][] Grid1 = new String[8][8];
+		BattleShipGameGrid.creatingGrid(Grid1);
+		//Printing opening message and asking user for ship and grenade positions
+		System.out.println("Hi, let's play BattleShip\n");
+		for(int i = 0;i<6;i++) {
+			BattleShipGameGrid.askingforShipPos(Grid1,i, keyboard);
+		}
+		System.out.println();
+		for(int i = 0;i<4;i++) {
+			BattleShipGameGrid.askingforGrenadePos(Grid1, i, keyboard);
+		}
+		//Initializing secondGrid and placing random ships and grenades around the grid
+		String[][] Grid2 = new String[8][8];
+		BattleShipGameGrid.creatingGrid(Grid2);
+		System.out.println("\nOK, the computer placed its ships and grenades "
+				+"at random.    Let's play\n\n");
+		BattleShipGameGrid.PlacingRandomShipsAndGrenades(Grid1);
+		boolean gameOver=false;
+		while(gameOver==false) {
+			if(gameOver==false) {
+				//asking user for input and checking if he has won the game
+				BattleShipGameGrid.playerTurn(Grid1, Grid2, keyboard);
+				if(BattleShipGameGrid.myShipsDestroyed(Grid2)==6) {
+					System.out.println("ship hit.   You Win!");
+					BattleShipGameGrid.summoningGrid(Grid1);
+					gameOver=true;break;
+				}
+				else if(BattleShipGameGrid.yourShipsDestroyed(Grid2)==6) {
+					System.out.println("ship hit.   I Win!");
+					BattleShipGameGrid.summoningGrid(Grid1);
+					gameOver=true;break;
+				}
+			}
+			//Outputting computer rocket position and checking if computer has won
+			if(gameOver==false) {
+				BattleShipGameGrid.myTurn(Grid1, Grid2, keyboard);
+				if(BattleShipGameGrid.yourShipsDestroyed(Grid2)==6) {
+					System.out.println("ship hit.   I Win!");
+					BattleShipGameGrid.summoningGrid(Grid1);
+					gameOver=true;break;
+				}
+				else if(BattleShipGameGrid.myShipsDestroyed(Grid2)==6) {
+					System.out.println("ship hit.   You Win!");
+					BattleShipGameGrid.summoningGrid(Grid1);
+					gameOver=true;break;
+				}
+			}
+		}
+	}
+}
+
+
+public class BattleShipGameGrid {
+	//This is the method used to create the grid
+	public static void creatingGrid(String[][] Grid) {
+		for(int i = 0;i<8;i++) {
+			for(int j = 0;j<8;j++) {
+				Grid[i][j]="_";
+			}
+		}
+	}
+	//This is the method used to generate grid in the intended format
+	public static void summoningGrid(String[][] Grid) {
+		for(int i = 0;i<8;i++) {
+			System.out.print("\t\t");
+			for(int j = 0;j<8;j++) {
+				System.out.print(Grid[i][j] +"  ");
+			}
+			System.out.println();
+		}
+	}
+	//This is the method used to convert character x coordinates to array numbers
+	public static int convertCoordinates(char x_coordinate) {
+		int x = 0;
+		switch(x_coordinate) {
+		case 'A': case 'a':
+			x = 0;break;
+		case 'B': case 'b':
+			x=1;break;
+		case 'C': case 'c':
+			x=2;break;
+		case 'D': case 'd':
+			x=3;break;
+		case 'E': case 'e':
+			x=4;break;
+		case 'F': case 'f':
+			x=5;break;
+		case 'G': case 'g':
+			x=6;break;
+		case 'H': case 'h':
+			x=7;break;	
+		}
+		return x;
+	}
+	//This is the method to check if a coordinate was already used before
+	public static boolean isCoordinateTaken(String[][] Grid, char x_coordinate, int y) {
+		int x = convertCoordinates(x_coordinate);
+		if(Grid[x][y] =="G"||Grid[x][y]=="g"||
+				Grid[x][y]=="S"||Grid[x][y]=="s"||Grid[x][y]=="*") {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//This is the method used to check if coordinate is outside the grid
+	public static boolean isCoordinateOutsideGrid(char x_coordinate,int y) {
+		int x = -1;
+		x = convertCoordinates(x_coordinate);
+		if(x<0||y<0||y>7) {
+			return true;
+		}
+		else {
+			return false;
+		}
+	}
+	//This is the method used to ask for Ship position
+	public static void askingforShipPos(String[][] Grid1,int i,Scanner keyboard) {
+		System.out.print("Enter the coordinates of your ship #"
+				+(i+1)+": ");
+		String coordinate = keyboard.next();
+		char x_coordinate = coordinate.charAt(0);
+		int x = convertCoordinates(x_coordinate);
+		int y = Integer.parseInt(coordinate.substring(1)) -1;
+		while(isCoordinateOutsideGrid(x_coordinate, y)) {
+			System.out.println("sorry, coordinates outside the grid.  try again");
+			System.out.print("Enter the coordinates of your ship #"
+					+(i+1)+": ");
+			coordinate = keyboard.next();
+			x_coordinate = coordinate.charAt(0);
+			x = convertCoordinates(x_coordinate);
+			y = Integer.parseInt(coordinate.substring(1)) -1;
+		}
+		while(isCoordinateTaken(Grid1, x_coordinate, y)) {
+			System.out.println("sorry, coordinates already used.  try again");
+			System.out.print("Enter the coordinates of your ship #"
+					+(i+1)+": ");
+			coordinate = keyboard.next();
+			x_coordinate = coordinate.charAt(0);
+			x = convertCoordinates(x_coordinate);
+			y = Integer.parseInt(coordinate.substring(1)) -1;
+		}
+		Grid1[x][y]="s";
+	}
+	//This is the method used to ask for grenade positions
+	public static void askingforGrenadePos(String[][] Grid1,int i,Scanner keyboard) {
+		System.out.print("Enter the coordinates of your grenade #"
+				+(i+1)+": ");
+		String coordinate = keyboard.next();
+		char x_coordinate = coordinate.charAt(0);
+		int x = convertCoordinates(x_coordinate);
+		int y = Integer.parseInt(coordinate.substring(1)) -1;
+		while(isCoordinateOutsideGrid(x_coordinate, y)) {
+			System.out.println("sorry, coordinates outside the grid.  try again");
+			System.out.print("Enter the coordinates of your grenade #"
+					+(i+1)+": ");
+			coordinate = keyboard.next();
+			x_coordinate = coordinate.charAt(0);
+			x = convertCoordinates(x_coordinate);
+		    y = Integer.parseInt(coordinate.substring(1)) -1;
+		}
+		while(isCoordinateTaken(Grid1, x_coordinate, y)) {
+			System.out.println("sorry, coordinates already used.  try again");
+			System.out.print("Enter the coordinates of your grenade #"
+					+(i+1)+": ");
+			coordinate = keyboard.next();
+			x_coordinate = coordinate.charAt(0);
+			x = convertCoordinates(x_coordinate);
+		    y = Integer.parseInt(coordinate.substring(1)) -1;
+		}
+		Grid1[x][y]="g";
+	}
+	//This is the method used to place random ships and grenades by the computer around the grid
+	public static void PlacingRandomShipsAndGrenades(String[][]Grid) {
+		int x,y;
+		Random rand = new Random();
+		for(int i = 0;i<6;i++) {
+			x = rand.nextInt(8); y = rand.nextInt(8);
+			while(Grid[x][y]!="_") {
+				x = rand.nextInt(8); y = rand.nextInt(8);
+			}
+			Grid[x][y]="S";
+		}
+		for(int i = 0;i<4;i++) {
+			x = rand.nextInt(8); y = rand.nextInt(8);
+			while(Grid[x][y]!="_") {
+				x = rand.nextInt(8); y = rand.nextInt(8);
+			}
+			Grid[x][y]="G";
+		}
+	}
+	//This is the method used to check if a grenade, ship or nothing was it, provided that game is not over yet
+	public static void checkingWhatWasHit(String[][] Grid1,String[][] Grid2,char x_coordinate,int y) {
+		int x = convertCoordinates(x_coordinate);
+		int yourPoints = 0; int myPoints=0;
+		Grid2[x][y]=Grid1[x][y];
+		for(int i = 0;i<8;i++) {
+			for(int j =0;j<8;j++) {
+				if(Grid2[i][j]=="S") {
+					yourPoints+=1;
+				}
+				else if(Grid2[i][j]=="s") {
+					myPoints +=1;
+				}
+			}
+		}
+		if((Grid1[x][y]=="S"||Grid1[x][y]=="s")&&myPoints<6&&yourPoints<6) {
+			System.out.println("ship hit.");
+			summoningGrid(Grid2);
+		}
+		else if(Grid1[x][y]=="g"||Grid1[x][y]=="G") {
+			System.out.println("boom! grenade");
+			summoningGrid(Grid2);
+		}
+		else if(Grid1[x][y]=="_"){
+			Grid2[x][y] = "*";
+			System.out.println("nothing.");
+			summoningGrid(Grid2);
+		}
+	}
+	//This is the method used to generate computer random rocket positions, while checking if position was not already used and also
+	//outputting what object was hit by rocket
+	//Also, if computer landed on grenade, the user plays immediately after
+	public static void myTurn(String[][]Grid1,String[][]Grid2,Scanner keyboard) {
+		Random rand2 = new Random();
+		char x = 0;
+		int x_coordinate = rand2.nextInt(8);
+		int y = rand2.nextInt(8);
+		switch(x_coordinate) {
+		case 0:
+			x ='A';break;
+		case 1:
+			x='B';break;
+		case 2:
+			x='C';break;
+		case 3:
+			x='D';break;
+		case 4:
+			x='E';break;
+		case 5:
+			x='F';break;
+		case 6:
+			x='G';break;
+		case 7:
+			x='H';break;
+		}
+		System.out.println("position of my rocket: " +x+(y+1));
+		if(isCoordinateTaken(Grid2,x,y)) {
+			System.out.println("position already called");
+			summoningGrid(Grid2);
+			return;
+		}
+		checkingWhatWasHit(Grid1,Grid2,x,y);
+		if(Grid1[x_coordinate][y]=="g"||Grid1[x_coordinate][y]=="G"){
+			playerTurn(Grid1,Grid2,keyboard);
+		}
+	}
+	//This is the method used to ask rocket positions from user, 
+	//while checking if position was not already used and if the coordinate is outside grid
+    //It also outputs what object was hit by rocket
+	//Also, if user landed on grenade, the computer plays immediately after
+	public static void playerTurn(String[][] Grid1,String[][] Grid2,Scanner keyboard) {
+		System.out.print("position of your rocket: ");
+		String coordinate = keyboard.next();
+		char x_coordinate =coordinate.charAt(0);
+		int x = convertCoordinates(x_coordinate);
+		int y = Integer.parseInt(coordinate.substring(1)) -1;
+		if(isCoordinateOutsideGrid(x_coordinate,y)) {
+			System.out.println("sorry, coordinates outside the grid.");
+			summoningGrid(Grid2);			
+			return;
+		}
+		if(isCoordinateTaken(Grid2,x_coordinate,y)) {
+			System.out.println("position already called");
+			summoningGrid(Grid2);	
+			return;
+		}
+		checkingWhatWasHit(Grid1,Grid2,x_coordinate,y);
+		if(Grid1[x][y]=="g"||Grid1[x][y]=="G") {
+			myTurn(Grid1,Grid2,keyboard);
+		}
+	}
+	//This is the method used to check how many computer ships were destroyed
+	public static int myShipsDestroyed(String[][] Grid2) {
+		int myPoints = 0;
+		for(int i = 0;i<8;i++) {
+			for(int j =0;j<8;j++) {
+				if(Grid2[i][j]=="S") {
+					myPoints +=1;
+				}
+			}
+		}
+		return myPoints;
+	}
+	//This is the method used to check how many user ships were destroyed
+	public static int yourShipsDestroyed(String[][] Grid2) {
+		int yourPoints = 0;
+		for(int i = 0;i<8;i++) {
+			for(int j =0;j<8;j++) {
+				if(Grid2[i][j]=="s") {
+					yourPoints +=1;
+				}
+			}
+		}
+		return yourPoints;
+	}
+}
